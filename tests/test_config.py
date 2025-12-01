@@ -2,9 +2,6 @@
 import os
 import tempfile
 import pytest
-import sys
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.config import MacroConfig
 

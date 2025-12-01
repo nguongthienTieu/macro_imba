@@ -232,7 +232,7 @@ class MacroEngine:
     
     def _auto_cast_loop(self) -> None:
         """Main loop for auto-casting skills."""
-        interval_ms = self.config.settings.get("auto_cast", {}).get("interval_ms", 100)
+        interval_ms = self.config.get_auto_cast_interval()
         
         while not self._stop_auto_cast.is_set() and self.enabled:
             skills = self.config.get_auto_cast_skills()

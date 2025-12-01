@@ -105,6 +105,10 @@ class MacroConfig:
             self.settings["auto_cast"] = {}
         self.settings["auto_cast"]["enabled"] = enabled
     
+    def get_auto_cast_interval(self) -> int:
+        """Get the auto-cast interval in milliseconds."""
+        return self.settings.get("auto_cast", {}).get("interval_ms", 100)
+    
     def get_auto_cast_skills(self) -> List[Dict[str, Any]]:
         """Get list of skills configured for auto-cast."""
         return self.settings.get("auto_cast", {}).get("skills", [])
