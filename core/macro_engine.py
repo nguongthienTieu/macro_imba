@@ -12,6 +12,7 @@ except ImportError:
     PYNPUT_AVAILABLE = False
 
 from .config import MacroConfig
+from .win_input import get_direct_input_controller, WINDOWS_AVAILABLE
 
 
 class MacroEngine:
@@ -22,12 +23,17 @@ class MacroEngine:
         self.running = False
         self.enabled = False
         
+        # Initialize pynput controllers for normal input
         if PYNPUT_AVAILABLE:
             self.keyboard_controller = KeyboardController()
             self.mouse_controller = MouseController()
         else:
             self.keyboard_controller = None
             self.mouse_controller = None
+        
+        # Initialize DirectInput controller for game compatibility (War3)
+        self.direct_input = get_direct_input_controller()
+        self.use_direct_input = WINDOWS_AVAILABLE  # Use DirectInput on Windows
         
         self._quick_cast_enabled = False
         self._auto_cast_enabled = False
@@ -142,11 +148,11 @@ class MacroEngine:
     
     def _execute_quick_cast(self, hotkey: str) -> None:
         """Execute a quick-cast action - press key and click at cursor position."""
-        if not self.keyboard_controller or not self.mouse_controller:
-            return
-        
-        # Quick-cast: press the skill key, then immediately left-click
-        self.mouse_controller.click(Button.left)
+        # Use DirectInput for game compatibility (War3)
+        if self.use_direct_input and self.direct_input.available:
+            self.direct_input.click_mouse('left')
+        elif self.mouse_controller:
+            self.mouse_controller.click(Button.left)
     
     def _handle_macro_hotkey(self, key_char: str) -> None:
         """Handle custom macro hotkey."""
@@ -184,22 +190,33 @@ class MacroEngine:
         
         if action_type == "key_press":
             key = action.get("key", "")
-            if key and self.keyboard_controller:
-                self.keyboard_controller.press(key)
-                self.keyboard_controller.release(key)
+            if key:
+                # Use DirectInput for game compatibility (War3)
+                if self.use_direct_input and self.direct_input.available:
+                    self.direct_input.tap_key(key)
+                elif self.keyboard_controller:
+                    self.keyboard_controller.press(key)
+                    self.keyboard_controller.release(key)
         
         elif action_type == "key_hold":
             key = action.get("key", "")
             duration = action.get("duration_ms", 100) / 1000
-            if key and self.keyboard_controller:
-                self.keyboard_controller.press(key)
-                time.sleep(duration)
-                self.keyboard_controller.release(key)
+            if key:
+                if self.use_direct_input and self.direct_input.available:
+                    self.direct_input.press_key(key)
+                    time.sleep(duration)
+                    self.direct_input.release_key(key)
+                elif self.keyboard_controller:
+                    self.keyboard_controller.press(key)
+                    time.sleep(duration)
+                    self.keyboard_controller.release(key)
         
         elif action_type == "mouse_click":
             button_name = action.get("button", "left")
-            button = Button.left if button_name == "left" else Button.right
-            if self.mouse_controller:
+            if self.use_direct_input and self.direct_input.available:
+                self.direct_input.click_mouse(button_name)
+            elif self.mouse_controller:
+                button = Button.left if button_name == "left" else Button.right
                 self.mouse_controller.click(button)
         
         elif action_type == "delay":
@@ -208,7 +225,12 @@ class MacroEngine:
         
         elif action_type == "combo":
             keys = action.get("keys", [])
-            if self.keyboard_controller:
+            if self.use_direct_input and self.direct_input.available:
+                for key in keys:
+                    self.direct_input.press_key(key)
+                for key in reversed(keys):
+                    self.direct_input.release_key(key)
+            elif self.keyboard_controller:
                 for key in keys:
                     self.keyboard_controller.press(key)
                 for key in reversed(keys):
@@ -242,9 +264,13 @@ class MacroEngine:
                     break
                     
                 hotkey = skill.get("hotkey", "")
-                if hotkey and self.keyboard_controller:
-                    self.keyboard_controller.press(hotkey)
-                    self.keyboard_controller.release(hotkey)
+                if hotkey:
+                    # Use DirectInput for game compatibility (War3)
+                    if self.use_direct_input and self.direct_input.available:
+                        self.direct_input.tap_key(hotkey)
+                    elif self.keyboard_controller:
+                        self.keyboard_controller.press(hotkey)
+                        self.keyboard_controller.release(hotkey)
                     
                     skill_interval = skill.get("interval_ms", interval_ms)
                     time.sleep(skill_interval / 1000)
@@ -271,6 +297,10 @@ class MacroEngine:
             self._start_auto_cast_thread()
         else:
             self._stop_auto_cast_thread()
+    
+    def set_direct_input_enabled(self, enabled: bool) -> None:
+        """Enable or disable DirectInput mode for War3 compatibility."""
+        self.use_direct_input = enabled and WINDOWS_AVAILABLE
     
     def add_auto_cast_skill(self, hotkey: str, interval_ms: int = 100) -> None:
         """Add a skill to auto-cast."""

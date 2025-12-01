@@ -178,8 +178,8 @@ class MainWindow(QMainWindow):
         
     def _setup_ui(self) -> None:
         """Setup the main UI."""
-        self.setWindowTitle("Dota Imba Macro Tool")
-        self.setMinimumSize(500, 600)
+        self.setWindowTitle("Dota Imba Macro Tool - War3 Compatible")
+        self.setMinimumSize(500, 650)
         
         # Central widget and main layout
         central_widget = QWidget()
@@ -270,19 +270,20 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(skills_group)
         
-        # Items section (2x3 grid = 6 items)
-        items_group = QGroupBox("🎒 Items (2x3)")
+        # Items section (3x2 grid = 6 items) - matches War3 inventory layout
+        items_group = QGroupBox("🎒 Items (3x2 - War3 Inventory)")
         items_group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; }")
         items_layout = QGridLayout(items_group)
         items_layout.setSpacing(10)
         
+        # War3 inventory layout: 3 columns x 2 rows
         item_labels = [
-            ("item_1", "Item 1"), ("item_2", "Item 2"), ("item_3", "Item 3"),
-            ("item_4", "Item 4"), ("item_5", "Item 5"), ("item_6", "Item 6")
+            ("item_1", "1"), ("item_2", "2"), ("item_3", "3"),
+            ("item_4", "4"), ("item_5", "5"), ("item_6", "6")
         ]
         
         for i, (item_key, label) in enumerate(item_labels):
-            row = i // 3
+            row = i // 3  # 3 columns
             col = i % 3
             
             # Container for label + button
@@ -292,9 +293,9 @@ class MainWindow(QMainWindow):
             container_layout.setSpacing(2)
             
             # Item label
-            item_label = QLabel(label)
+            item_label = QLabel(f"Slot {label}")
             item_label.setAlignment(Qt.AlignCenter)
-            item_label.setStyleSheet("font-weight: bold; color: #2c3e50;")
+            item_label.setStyleSheet("font-weight: bold; color: #d4af37;")  # Gold color like War3
             container_layout.addWidget(item_label)
             
             # Hotkey button
@@ -449,16 +450,41 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(settings_group)
         
+        # War3 / DirectInput settings
+        war3_group = QGroupBox("🎮 Warcraft 3 Compatibility")
+        war3_layout = QVBoxLayout(war3_group)
+        
+        self.direct_input_enabled = QCheckBox("Enable DirectInput (Required for War3)")
+        self.direct_input_enabled.setToolTip(
+            "Enable this option for Warcraft 3 and other DirectX games.\n"
+            "DirectInput sends key presses at a lower level that games can detect."
+        )
+        self.direct_input_enabled.setChecked(True)  # Default enabled for War3
+        self.direct_input_enabled.stateChanged.connect(self._on_direct_input_toggle)
+        war3_layout.addWidget(self.direct_input_enabled)
+        
+        war3_info = QLabel(
+            "⚠️ DirectInput is required for War3 compatibility.\n"
+            "When enabled, the tool sends key presses using Windows SendInput\n"
+            "which works with DirectX games like Warcraft 3."
+        )
+        war3_info.setWordWrap(True)
+        war3_info.setStyleSheet("color: #888; font-size: 11px;")
+        war3_layout.addWidget(war3_info)
+        
+        layout.addWidget(war3_group)
+        
         # Info
         info_group = QGroupBox("Information")
         info_layout = QVBoxLayout(info_group)
         
         info_text = QLabel(
-            "Dota Imba Macro Tool\n\n"
+            "Dota Imba Macro Tool for Warcraft 3\n\n"
             "Features:\n"
             "• Quick-Cast: Instantly cast skills at cursor position\n"
             "• Auto-Cast: Automatically repeat skill casts\n"
-            "• Custom Macros: Create your own key sequences\n\n"
+            "• Custom Macros: Create your own key sequences\n"
+            "• DirectInput: Compatible with Warcraft 3 and DirectX games\n\n"
             "Press the toggle hotkey to enable/disable during game.\n"
             "All settings are saved automatically."
         )
@@ -595,6 +621,11 @@ class MainWindow(QMainWindow):
         """Handle auto-cast toggle."""
         enabled = state == Qt.Checked
         self.engine.set_auto_cast_enabled(enabled)
+    
+    def _on_direct_input_toggle(self, state: int) -> None:
+        """Handle DirectInput toggle for War3 compatibility."""
+        enabled = state == Qt.Checked
+        self.engine.set_direct_input_enabled(enabled)
         
     def _add_auto_cast_skill(self) -> None:
         """Add a skill to auto-cast list."""
