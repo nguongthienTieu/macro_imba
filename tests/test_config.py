@@ -127,6 +127,27 @@ class TestMacroConfig:
         """Test loading from a non-existent file."""
         config = MacroConfig("/nonexistent/path/config.yaml")
         assert config.load() is False
+    
+    def test_item_hotkeys(self):
+        """Test item hotkey settings."""
+        assert self.config.get_item_enabled() is True
+        
+        self.config.set_item_enabled(False)
+        assert self.config.get_item_enabled() is False
+        
+        self.config.set_item_hotkey("item_1", "z")
+        assert self.config.get_item_hotkeys()["item_1"] == "z"
+        
+        self.config.clear_item_hotkey("item_1")
+        assert self.config.get_item_hotkeys()["item_1"] == ""
+    
+    def test_clear_quick_cast_hotkey(self):
+        """Test clearing quick-cast hotkey."""
+        self.config.set_quick_cast_hotkey("skill_1", "a")
+        assert self.config.get_quick_cast_hotkeys()["skill_1"] == "a"
+        
+        self.config.clear_quick_cast_hotkey("skill_1")
+        assert self.config.get_quick_cast_hotkeys()["skill_1"] == ""
 
 
 if __name__ == "__main__":

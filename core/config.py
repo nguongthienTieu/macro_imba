@@ -36,7 +36,20 @@ class MacroConfig:
                     "skill_3": "e",
                     "skill_4": "r",
                     "skill_5": "d",
-                    "skill_6": "f"
+                    "skill_6": "f",
+                    "skill_7": "t",
+                    "skill_8": "g"
+                }
+            },
+            "items": {
+                "enabled": True,
+                "hotkeys": {
+                    "item_1": "1",
+                    "item_2": "2",
+                    "item_3": "3",
+                    "item_4": "4",
+                    "item_5": "5",
+                    "item_6": "6"
                 }
             },
             "auto_cast": {
@@ -94,6 +107,40 @@ class MacroConfig:
         if "hotkeys" not in self.settings["quick_cast"]:
             self.settings["quick_cast"]["hotkeys"] = {}
         self.settings["quick_cast"]["hotkeys"][skill_name] = hotkey
+    
+    def get_item_enabled(self) -> bool:
+        """Check if item hotkeys are enabled."""
+        return self.settings.get("items", {}).get("enabled", True)
+    
+    def set_item_enabled(self, enabled: bool) -> None:
+        """Set item hotkeys enabled state."""
+        if "items" not in self.settings:
+            self.settings["items"] = {}
+        self.settings["items"]["enabled"] = enabled
+    
+    def get_item_hotkeys(self) -> Dict[str, str]:
+        """Get item hotkey mappings."""
+        return self.settings.get("items", {}).get("hotkeys", {})
+    
+    def set_item_hotkey(self, item_name: str, hotkey: str) -> None:
+        """Set a hotkey for an item slot."""
+        if "items" not in self.settings:
+            self.settings["items"] = {}
+        if "hotkeys" not in self.settings["items"]:
+            self.settings["items"]["hotkeys"] = {}
+        self.settings["items"]["hotkeys"][item_name] = hotkey
+    
+    def clear_item_hotkey(self, item_name: str) -> None:
+        """Clear a hotkey for an item slot."""
+        if "items" in self.settings and "hotkeys" in self.settings["items"]:
+            if item_name in self.settings["items"]["hotkeys"]:
+                self.settings["items"]["hotkeys"][item_name] = ""
+    
+    def clear_quick_cast_hotkey(self, skill_name: str) -> None:
+        """Clear a quick-cast hotkey for a skill."""
+        if "quick_cast" in self.settings and "hotkeys" in self.settings["quick_cast"]:
+            if skill_name in self.settings["quick_cast"]["hotkeys"]:
+                self.settings["quick_cast"]["hotkeys"][skill_name] = ""
     
     def get_auto_cast_enabled(self) -> bool:
         """Check if auto-cast is enabled."""
