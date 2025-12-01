@@ -111,11 +111,9 @@ class HotkeyButton(QPushButton):
         if key == Qt.Key_Backspace:
             self.hotkey = ""
             self.stop_capturing()
-            # Emit signal to parent
-            if self.parent() and hasattr(self.parent(), 'parent'):
-                main_window = self._find_main_window()
-                if main_window:
-                    main_window._on_hotkey_cleared(self.slot_name, self.slot_type)
+            main_window = self._find_main_window()
+            if main_window:
+                main_window._on_hotkey_cleared(self.slot_name, self.slot_type)
             return
         
         # Handle escape to cancel
@@ -153,7 +151,7 @@ class HotkeyButton(QPushButton):
         while parent:
             if isinstance(parent, MainWindow):
                 return parent
-            parent = parent.parent() if hasattr(parent, 'parent') else None
+            parent = parent.parent()
         return None
     
     def focusOutEvent(self, event) -> None:
