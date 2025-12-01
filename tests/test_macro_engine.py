@@ -100,6 +100,18 @@ class TestMacroEngine:
         # Engine should have reloaded the setting
         assert self.config.get_quick_cast_enabled() is False
     
+    def test_direct_input_settings(self):
+        """Test DirectInput enable/disable."""
+        # Test setting DirectInput mode
+        self.engine.set_direct_input_enabled(True)
+        # On non-Windows, this should set to False
+        # On Windows, this should set to True
+        from core.win_input import WINDOWS_AVAILABLE
+        assert self.engine.use_direct_input == WINDOWS_AVAILABLE
+        
+        self.engine.set_direct_input_enabled(False)
+        assert self.engine.use_direct_input is False
+    
     @pytest.mark.skipif(not PYNPUT_AVAILABLE, reason="pynput not available")
     def test_start_stop(self):
         """Test starting and stopping the engine."""
